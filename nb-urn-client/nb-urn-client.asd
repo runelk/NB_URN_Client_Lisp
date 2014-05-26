@@ -10,6 +10,7 @@
   :components ((:file "package")
 	       (:file "soap-generators")
 	       (:file "requests")
+	       (:file "globals")
 	       (:file "nb-urn-client"))
   :serial t)
 
