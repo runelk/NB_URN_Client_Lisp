@@ -9,6 +9,7 @@
   :depends-on (:drakma :cxml)
   :components ((:file "package")
 	       (:file "soap-generators")
+	       (:file "soap-extractors")
 	       (:file "requests")
 	       (:file "globals")
 	       (:file "nb-urn-client"))

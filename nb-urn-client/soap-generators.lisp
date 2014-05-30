@@ -53,8 +53,12 @@
 
 (defun generate-logout (sso-token)
   (generate-envelope
-   (cxml:with-element "v1:logout"
-     (cxml:with-element "SSOToken" (cxml:text sso-token)))))
+   (cxml:with-element "v1:SSOToken" (cxml:text sso-token))))
+
+
+  ;; (generate-envelope
+  ;;  (cxml:with-element "v1:logout"
+  ;;    (cxml:with-element "SSOToken" (cxml:text sso-token)))))
 
 (defun generate-register-urn (sso-token urn url)
   (generate-envelope
