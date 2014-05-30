@@ -9,4 +9,4 @@
 	(cxml:parse request-result
 		    (cxml-dom:make-dom-builder)))))
 
-
+:eof
