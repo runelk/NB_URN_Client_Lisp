@@ -1,12 +1,26 @@
 (in-package :nb-urn-client)
 
+(defun soap-has-fault-p (soap-document)
+  (> (dom:length (dom:get-elements-by-tag-name-ns
+		  soap-document
+		  "http://schemas.xmlsoap.org/soap/envelope/"
+		  "Fault"))
+     0))
+
 (defun send-request (envelope)
-  (let ((request-result (drakma:http-request "http://www.nb.no/idtjeneste-test/ws" 
+  (let ((request-result (drakma:http-request *default-endpoint* 
 					     :method :post
 					     :content-type "text/xml;charset=UTF-8"
 					     :content envelope)))
     (if request-result
-	(cxml:parse request-result
-		    (cxml-dom:make-dom-builder)))))
+	(let ((document (cxml:parse request-result
+				    (cxml-dom:make-dom-builder))))
+	  (when (soap-has-fault-p document)
+	    (let ((fault (first (soap-faults document))))
+	      (error 'soap-fault-error
+		     :faultcode (soap-fault-faultcode fault)
+		     :faultstring (soap-fault-faultstring fault)
+		     :detail (soap-fault-detail fault))))
+	  document))))
 
 :eof
