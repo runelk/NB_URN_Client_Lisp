@@ -5,17 +5,23 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defstruct url-info
-  last-valid-timestamp
-  mime-type
-  status
+  last-valid-timestamp 
+  mime-type 
+  status 
   status-timestamp
   url
   )
 
 (defstruct urn-info
   default-url
-  url-list
+  url-list ; A list of url-info structs
   urn
+  )
+
+(defstruct soap-fault
+  faultcode
+  faultstring
+  detail
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -28,7 +34,6 @@
 	(if (and (dom:has-child-nodes first-child)
 		 (eql :text (dom:node-type (dom:first-child first-child))))
 	    (dom:node-value (dom:first-child first-child))))))
-
 
 (defun soap-element (elm tag-name)
   (let ((child-elm (dom:get-elements-by-tag-name elm tag-name)))
@@ -50,6 +55,13 @@
 ;;; RETURNS NODES
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun soap-envelope (response)
+  (aref (dom:get-elements-by-tag-name-ns
+	 response
+	 "http://schemas.xmlsoap.org/soap/envelope/"
+	 "Envelope")
+	0))
+
 (defun soap-header (envelope)
   (aref (dom:get-elements-by-tag-name-ns
 	 envelope
@@ -64,13 +76,6 @@
 	 "Body")
 	0))
 
-(defun soap-envelope (response)
-  (aref (dom:get-elements-by-tag-name-ns
-	 response
-	 "http://schemas.xmlsoap.org/soap/envelope/"
-	 "Envelope")
-	0))
-
 (defun soap-return (envelope)
   (let ((ret (dom:get-elements-by-tag-name envelope "return")))
     (if (> (dom:length ret) 0)
@@ -79,8 +84,13 @@
 (defun soap-url-list (return-node)
   (let ((url-list (dom:get-elements-by-tag-name return-node "urlList")))
     (if (> (dom:length url-list) 0)
-    	(loop for url across (dom:child-nodes (aref url-list 0))
-	   collect (soap-url-info url)))))
+    	(loop for url across (dom:get-elements-by-tag-name (aref url-list 0) "url")
+    	   collect (soap-url-info url)))))
+
+(defun soap-urn-list (return-node)
+  (let ((urn-arr (dom:get-elements-by-tag-name return-node "urn")))
+    (if (> (dom:length urn-arr) 0)
+    	(loop for urn across urn-arr collect (soap-urn-info urn)))))
 
 (defun soap-login-response (envelope)
   (aref
@@ -92,6 +102,23 @@
    (soap-element-value
     (soap-element (soap-login-response envelope)
 		  "SSOToken")))
+
+
+(defun soap-faults (soap-document)
+  (loop for f across (dom:get-elements-by-tag-name-ns
+		      soap-document
+		      "http://schemas.xmlsoap.org/soap/envelope/"
+		      "Fault")
+       collect (make-soap-fault :faultcode
+				(soap-element-value
+				 (soap-element f "faultcode"))
+				:faultstring
+				(soap-element-value
+				 (soap-element f "faultstring"))
+				:detail
+				(soap-element-value
+				 (soap-element f "detail")))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; RETURNS ACTUAL VALUES, NOT NODES

@@ -50,10 +50,16 @@
   ;; Find a registered URN with all corresponding locations, along with
   ;; other registered information regarding the URN.
   (defun find-urn (urn)
-    (soap-urn-info (send-request (generate-find-urn urn))))
+    (soap-urn-info
+     (soap-return
+      (soap-envelope
+       (send-request (generate-find-urn urn))))))
 
   (defun find-urns-for-url (url)
-    (soap-urn-info (send-request (generate-find-urns-for-url url))))
+    (soap-urn-list
+     (soap-return
+      (soap-envelope
+       (send-request (generate-find-urns-for-url url))))))
 
   ;; Request the next available URN from a series/prefix.
   ;;
@@ -81,9 +87,9 @@
   ;; (see globals.lisp)
   ;; config file.
   (defun login (username password)
-    (let ((new-sso-token
-	   (soap-sso-token
-	    (send-request (generate-login username password)))))
+    (let ((new-sso-token (soap-sso-token
+			  (send-request
+			   (generate-login username password)))))
       (unless (null new-sso-token)
 	(setf sso-token new-sso-token)))
     sso-token)
