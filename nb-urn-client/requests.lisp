@@ -7,12 +7,12 @@
 		  "Fault"))
      0))
 
-(defun send-request (envelope)
-  (let ((request-result (drakma:http-request *default-endpoint* 
+(defun send-request (envelope &key endpoint)
+  (let ((request-result (drakma:http-request (or endpoint *default-endpoint* )
 					     :method :post
 					     :content-type "text/xml;charset=UTF-8"
 					     :content envelope)))
-    (if request-result
+    (unless (null-or-empty-string-p request-result)
 	(let ((document (cxml:parse request-result
 				    (cxml-dom:make-dom-builder))))
 	  (when (soap-has-fault-p document)
