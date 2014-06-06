@@ -7,6 +7,7 @@
   :description "Lisp client for the URN PID service at Nasjonalbiblioteket (http://idtjeneste.nb.no)"
   :depends-on (:drakma :cxml)
   :components ((:file "package")
+	       (:file "utilities")
 	       (:file "globals")
 	       (:file "errors")
 	       (:file "wsdl")

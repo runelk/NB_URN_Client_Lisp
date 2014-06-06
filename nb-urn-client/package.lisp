@@ -4,7 +4,8 @@
   (:use :common-lisp
 	:drakma
 	:cxml)
-  (:export :add-url
+  (:export :initialize-client
+	   :add-url
 	   :create-urn
 	   :delete-url
 	   :find-urn
@@ -20,6 +21,10 @@
 	   :get-all-urn-series
 	   :get-version
 	   :url-info
-	   :urn-info))
+	   :urn-info-default-url
+	   :urn-info-url-list
+	   :urn-info-urn
+	   :sso-token
+	   ))
 
 :eof

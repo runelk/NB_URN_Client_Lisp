@@ -1,10 +1,30 @@
 (in-package :nb-urn-client)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; MAIN CLIENT STRUCT
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defstruct urn-client
+  username
+  password
+  wsdl ; NB: Not in use for now
+  endpoint
+  sso-token
+  )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; TOP-LEVEL API CALLS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(let ((sso-token nil))
+(let ((client nil))
+
+  (defun initialize-client (&key username password wsdl endpoint)
+    (setf client (make-urn-client :username (or username *default-username*)
+				  :password (or password *default-password*)
+				  :wsdl (or wsdl *default-wsdl-uri*)
+				  :endpoint (or endpoint *default-endpoint*))))
+
+  (defun sso-token () (urn-client-sso-token client))
 
   ;; Add a new URL that is to be associated with the specified URN.
   ;;
@@ -12,8 +32,9 @@
   ;;     urn -- the URN to associate the new target to 
   ;;     url -- the URL pointing to the target
   (defun add-url (urn url)
-    (if sso-token
-	(let ((result (send-request (generate-add-url sso-token urn url))))
+    (if (sso-token)
+	(let ((result (send-request (generate-add-url (sso-token) urn url)
+				    :endpoint (urn-client-endpoint client))))
 	  (when result (soap-urn-info result)))
 	'no-sso-token))
 
@@ -28,8 +49,9 @@
   ;; - if the user has access to this series.
   ;; The created URN is stored in the ID service.
   (defun create-urn (series-code url)
-    (if sso-token
-	(let ((result (send-request (generate-create-urn sso-token series-code url))))
+    (if (sso-token)
+	(let ((result (send-request (generate-create-urn (sso-token) series-code url)
+				    :endpoint (urn-client-endpoint client))))
 	  (when result (soap-urn-info result)))
 	'no-sso-token))
 
@@ -42,8 +64,9 @@
   ;; This operation is only allowed as long as there is more than
   ;; one registered target for the specified URN.  
   (defun delete-url (urn url)
-    (if sso-token
-	(let ((result (send-request (generate-delete-url sso-token urn url))))
+    (if (sso-token)
+	(let ((result (send-request (generate-delete-url (sso-token) urn url)
+				    :endpoint (urn-client-endpoint client))))
 	  (when result (soap-urn-info result)))
 	'no-sso-token))
 
@@ -53,13 +76,15 @@
     (soap-urn-info
      (soap-return
       (soap-envelope
-       (send-request (generate-find-urn urn))))))
+       (send-request (generate-find-urn urn)
+		     :endpoint (urn-client-endpoint client))))))
 
   (defun find-urns-for-url (url)
     (soap-urn-list
      (soap-return
       (soap-envelope
-       (send-request (generate-find-urns-for-url url))))))
+       (send-request (generate-find-urns-for-url url)
+		     :endpoint (urn-client-endpoint client))))))
 
   ;; Request the next available URN from a series/prefix.
   ;;
@@ -71,8 +96,9 @@
   ;; - if the user has access to this series.
   ;; The returned URN is not stored in the ID service.  
   (defun get-next-urn (series-code)
-    (if sso-token
-	(let ((result (send-request (generate-get-next-urn sso-token series-code))))
+    (if (sso-token)
+	(let ((result (send-request (generate-get-next-urn (sso-token) series-code)
+				    :endpoint (urn-client-endpoint client))))
 	  (when result (soap-urn-info result)))
 	'no-sso-token))
 
@@ -86,18 +112,22 @@
   ;; client tries to find the missing information from the global parameters.
   ;; (see globals.lisp)
   ;; config file.
-  (defun login (username password)
-    (let ((new-sso-token (soap-sso-token
-			  (send-request
-			   (generate-login username password)))))
+  (defun login (&key username password)
+    (let* ((username (or username (urn-client-username client)))
+	   (password (or password (urn-client-password client)))
+	   (new-sso-token (soap-sso-token
+			  (send-request (generate-login username password)
+					:endpoint (urn-client-endpoint client)))))
       (unless (null new-sso-token)
-	(setf sso-token new-sso-token)))
-    sso-token)
+	(setf (urn-client-sso-token client) new-sso-token)))
+    (sso-token))
 
   ;; Used to log out of the ID-service.
   (defun logout ()
-    (unless (null sso-token)
-      (send-request (generate-logout sso-token))))
+    (unless (null (sso-token))
+      (send-request (generate-logout (sso-token))
+		    :endpoint (urn-client-endpoint client))
+      (setf (urn-client-sso-token client) nil)))
 
   ;; Register a new URN and attach it to a target pointed to by the URL.
   ;;
@@ -107,8 +137,9 @@
   ;;
   ;; The URN is stored in the ID service.
   (defun register-urn (urn url)
-    (if sso-token
-	(let ((result (send-request (generate-register-urn sso-token urn url))))
+    (if (sso-token)
+	(let ((result (send-request (generate-register-urn (sso-token) urn url)
+				    :endpoint (urn-client-endpoint client))))
 	  (when result (soap-urn-info result)))
 	'no-sso-token))
 
@@ -119,8 +150,9 @@
   ;;     old_url -- The old URL to be replaced
   ;;     new_url -- The new URL to replace the old URL with 
   (defun replace-url (urn old-url new-url)
-    (if sso-token
-	(let ((result (send-request (generate-replace-url sso-token urn old-url new-url))))
+    (if (sso-token)
+	(let ((result (send-request (generate-replace-url (sso-token) urn old-url new-url)
+				    :endpoint (urn-client-endpoint client))))
 	  (when result (soap-urn-info result)))
 	'no-sso-token))
 
@@ -134,8 +166,9 @@
   ;; - if the user has access to this series.
   ;; The created URN is stored in the ID service, but is not attached to any locations.  
   (defun reserve-next-urn (series-code)
-    (if sso-token
-	(let ((result (send-request (generate-reserve-next-urn sso-token series-code))))
+    (if (sso-token)
+	(let ((result (send-request (generate-reserve-next-urn (sso-token) series-code)
+				    :endpoint (urn-client-endpoint client))))
 	  (when result (soap-urn-info result)))
 	'no-sso-token))
 
@@ -147,8 +180,9 @@
   ;; The URN is stored in the ID service without any associated targets.
   ;; This is only allowed for URNs belonging to a series without serial numbers.
   (defun reserve-urn (urn)
-    (if sso-token
-	(let ((result (send-request (generate-reserve-urn sso-token urn))))
+    (if (sso-token)
+	(let ((result (send-request (generate-reserve-urn (sso-token) urn)
+				    :endpoint (urn-client-endpoint client))))
 	  (when result (soap-urn-info result)))
 	'no-sso-token))
 
@@ -159,8 +193,9 @@
   ;;     url -- the default URL to set for the URN
   ;; The specified URL must be one that is already registered for the URN.
   (defun set-default-url (urn url)
-    (if sso-token
-	(let ((result (send-request (generate-set-default-url sso-token urn url))))
+    (if (sso-token)
+	(let ((result (send-request (generate-set-default-url (sso-token) urn url)
+				    :endpoint (urn-client-endpoint client))))
 	  (when result (soap-urn-info result)))
 	'no-sso-token))
 
@@ -169,14 +204,16 @@
   ;; This call is currently unimplemented on the server side.
   (defun get-all-urn-series ()
     'unimplemented-by-server
-    ;; (send-request (generate-get-all-urn-series sso-token))
+    ;; (send-request (generate-get-all-urn-series (sso-token))
+    ;; 		  :endpoint (urn-client-endpoint client))
     )
 
   ;; Returns the current API version.
   ;; This call is currently unimplemented on the server side.
   (defun get-version ()
     'unimplemented-by-server
-    ;; (send-request (generate-get-version))
+    ;; (send-request (generate-get-version)
+    ;; 		  :endpoint (urn-client-endpoint client))
     ))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
