@@ -1,10 +1,5 @@
 (in-package :nb-urn-client)
 
-(defun trim-whitespace (str)
-  (string-trim '(#\Space #\Newline #\Backspace #\Tab 
-		 #\Linefeed #\Page #\Return #\Rubout)
-	       str))
-
 (define-condition nb-urn-client-error (error)
   ((what :initarg :what :initform "Something went wrong with the client." :reader what))
   (:report (lambda (condition s)
