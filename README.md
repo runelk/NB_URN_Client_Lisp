@@ -21,18 +21,15 @@ You also need user credentials and endpoint information from NB.
 Dependencies
 ------------
 
-* drakma
-* cxml
-* lisp-unit (for the tests only)
+* [drakma](http://www.cliki.net/drakma)
+* [cxml](http://www.cliki.net/cxml)
+* [lisp-unit](http://www.cliki.net/lisp-unit) (for testing)
+
+All dependencies are available in [quicklisp](http://www.quicklisp.org/).
 
 Testing
 -------
 To run this test suite you need an appropriate mockservice (not available in the repository yet).
-The test suite depends on the [lisp-unit](http://www.cliki.net/lisp-unit) framework.
-It is available from quicklisp, e.g.:
-```lisp
-(ql:quickload :lisp-unit)
-```
 
 Make sure the `nb-urn-client` and `test` folders are available to ASDF.
 
