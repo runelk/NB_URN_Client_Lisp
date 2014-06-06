@@ -13,7 +13,12 @@ You also need user credentials and endpoint information from NB.
 ```lisp
 (asdf:load-system :nb-urn-client)
 (in-package :nb-urn-client)
+
+;;; Initialize the client with named arguments:
 (initialize-client :username "foo" :password "bar" :endpoint "baz")
+
+;;; Or, initialize the client with information in globals.lisp:
+(initialize-client)
 
 ;;; Does not require a valid username or password, only an endpoint:
 (find-urn "SOME:URN")
