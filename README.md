@@ -14,8 +14,15 @@ You also need user credentials and endpoint information from NB.
 (asdf:load-system :nb-urn-client)
 (in-package :nb-urn-client)
 (initialize-client :username "foo" :password "bar" :endpoint "baz")
+
+;;; Does not require a valid username or password, only an endpoint:
 (find-urn "SOME:URN")
 (find-urns-for-url "http://foo.bar.com")
+
+;;; Requires an endpoint and valid username and password
+(login)
+(register-urn "SOME:URN" "http://foo.bar.com")
+(logout)
 ```
 
 Dependencies
