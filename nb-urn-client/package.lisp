@@ -18,6 +18,8 @@
 	   :reserve-urn
 	   :set-default-url
 	   :get-all-urn-series
-	   :get-version))
+	   :get-version
+	   :url-info
+	   :urn-info))
 
 :eof
