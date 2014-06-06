@@ -28,7 +28,7 @@ Dependencies
 Testing
 -------
 To run this test suite you need an appropriate mockservice (not available in the repository yet).
-The test suite makes use of the [lisp-unit](http://www.cliki.net/lisp-unit) framework.
+The test suite depends on the [lisp-unit](http://www.cliki.net/lisp-unit) framework.
 It is available from quicklisp, e.g.:
 ```lisp
 (ql:quickload :lisp-unit)
