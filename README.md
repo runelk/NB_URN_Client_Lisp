@@ -15,19 +15,23 @@ You also need user credentials and endpoint information from NB.
 (in-package :nb-urn-client)
 
 ;;; Initialize the client with named arguments:
-(initialize-client :username "foo" :password "bar" :endpoint "baz")
+(defparameter *client*
+  (make-instance 'nb-urn-client
+                 :username "foo"
+                 :password "bar"
+                 :endpoint "baz")
 
 ;;; Or, initialize the client with information in globals.lisp:
-(initialize-client)
+(defparameter *client* (make-instance 'nb-urn-client))
 
 ;;; Does not require a valid username or password, only an endpoint:
-(find-urn "SOME:URN")
-(find-urns-for-url "http://foo.bar.com")
+(find-urn *client* "SOME:URN")
+(find-urns-for-url *client* "http://foo.bar.com")
 
 ;;; Requires an endpoint and valid username and password
-(login)
-(register-urn "SOME:URN" "http://foo.bar.com")
-(logout)
+(login *client*)
+(register-urn *client* "SOME:URN" "http://foo.bar.com")
+(logout *client*)
 ```
 
 Dependencies
@@ -49,8 +53,7 @@ Make sure the `nb-urn-client` and `test` folders are available to ASDF.
 (asdf:load-system :nb-urn-client-tests)
 (in-package :nb-urn-client-tests)
 (run-all-tests)
-```
-Optionally, if you want more verbose output:
-```lisp
+
+;;; Optionally, if you want more verbose output:
 (run-all-tests :verbose t)
 ```
