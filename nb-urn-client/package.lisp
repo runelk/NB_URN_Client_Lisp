@@ -21,6 +21,9 @@
 	   :get-all-urn-series
 	   :get-version
 	   :sso-token
+	   :urn-info-default-url
+	   :urn-info-url-list
+	   :urn-info-urn
 	   ))
 
 :eof

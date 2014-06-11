@@ -23,10 +23,11 @@
   (setf nb-urn-client::*default-wsdl-uri* *mock-wsdl-uri*)
   (setf nb-urn-client::*default-endpoint* *mock-endpoint*)
   
-  (nb-urn-client:initialize-client :username *mock-username*
-				   :password *mock-password*
-				   :wsdl *mock-wsdl-uri*
-				   :endpoint *mock-endpoint*))
+  (defparameter *client* (make-instance 'nb-urn-client
+					:username *mock-username*
+					:password *mock-password*
+					:wsdl *mock-wsdl-uri*
+					:endpoint *mock-endpoint*)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; TESTS
@@ -42,9 +43,9 @@
   (let* ((urn-existing "URN:NBN:no-nb_ClarinoPrefix1_1234_1234")
 	 (urn-non-existing "URN:NBN:no-nb_ClarinoPrefix1_1234_1235")
 	 (url "http://www.aftenposten.com/")
-	 (result (nb-urn-client:find-urn urn-existing)))
+	 (result (nb-urn-client:find-urn *client* urn-existing)))
     (assert-error 'nb-urn-client::soap-fault-error
-		  (nb-urn-client:find-urn urn-non-existing))
+		  (nb-urn-client:find-urn *client* urn-non-existing))
     (assert-equal url (nb-urn-client:urn-info-default-url result))
     (assert-equal 1 (length (nb-urn-client:urn-info-url-list result)))
     (assert-equal urn-existing (nb-urn-client:urn-info-urn result))))
@@ -52,8 +53,8 @@
 (define-test test-find-urns-for-url
   (let* ((url-existing "http://www.aftenposten.no/")
 	 (url-non-existing "http://www.foo.com/")
-	 (result-non-existing (nb-urn-client:find-urns-for-url url-non-existing))
-	 (result-existing (nb-urn-client:find-urns-for-url url-existing)))
+	 (result-non-existing (nb-urn-client:find-urns-for-url *client* url-non-existing))
+	 (result-existing (nb-urn-client:find-urns-for-url *client* url-existing)))
     (assert-true (null result-non-existing))
     (assert-equal 2 (length result-existing))))
 
@@ -61,18 +62,18 @@
 
 (define-test test-login
   (assert-error 'nb-urn-client::soap-fault-error
-		(nb-urn-client:login :username "foo" :password "bar"))
-  (let ((result (nb-urn-client:login)))
+		(nb-urn-client:login *client* :username "foo" :password "bar"))
+  (let ((result (nb-urn-client:login *client*)))
     (assert-equal *mock-sso-token* result)
-    (assert-equal *mock-sso-token* (nb-urn-client:sso-token)))
-  (nb-urn-client:logout))
+    (assert-equal *mock-sso-token* (nb-urn-client:sso-token *client*)))
+  (nb-urn-client:logout *client*))
 
 (define-test test-logout
-  (assert-true (null (nb-urn-client:sso-token)))
-  (nb-urn-client:login)
-  (assert-false (null (nb-urn-client:sso-token)))
-  (nb-urn-client:logout)
-  (assert-true (null (nb-urn-client:sso-token))))
+  (assert-true (null (nb-urn-client:sso-token *client*)))
+  (nb-urn-client:login *client*)
+  (assert-false (null (nb-urn-client:sso-token *client*)))
+  (nb-urn-client:logout *client*)
+  (assert-true (null (nb-urn-client:sso-token *client*))))
 
 (define-test test-register-urn)
 
