@@ -24,13 +24,37 @@ You also need user credentials and endpoint information from NB.
 ;;; Or, initialize the client with information in globals.lisp:
 (defparameter *client* (make-instance 'nb-urn-client))
 
-;;; Does not require a valid username or password, only an endpoint:
-(find-urn *client* "SOME:URN")
-(find-urns-for-url *client* "http://foo.bar.com")
-
-;;; Requires an endpoint and valid username and password
+;;; You need to login first
 (login *client*)
-(register-urn *client* "SOME:URN" "http://foo.bar.com")
+
+;;; Reserve the next available URN in the given series
+(defparameter *new-urn* (reserve-next-urn *client* "some:urn:prefix"))
+
+;;; Register some valid URL for the newly created URN
+(add-url *client* (urn-info-urn *new-urn*) "http://www.someurl.com/")
+
+;;; Register another URL for the same URN
+(add-url *client* (urn-info-urn *new-urn*) "http://www.someotherurl.com/")
+
+;;; Set one of the registered URLs to be the default URL
+(set-default-url *client* (urn-info-urn *new-urn*) "http://www.someurl.com/")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; ALTERNATIVE: Using create-urn
+;;; (defparameter *new-urn* 
+;;;               (create-urn *client*
+;;;                           "some:urn:prefix" 
+;;;                           "http://www.someurl.com"))
+;;; (add-url *client* "http://www.someotherurl.com/")
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;; Retrieve the URN you just created and have a look
+(find-urn *client* (urn-info-urn *new-urn*))
+
+;;; Retrieve all URNs containing the URL you added. Your URN should be in the list
+(find-urns-for-urn *client* "http://www.someurl.com/")
+
+;;; Logout when you're done
 (logout *client*)
 ```
 
