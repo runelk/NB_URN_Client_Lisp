@@ -84,7 +84,7 @@
 
 (defun generate-set-default-url (sso-token urn url)
   (generate-envelope
-   (cxml:with-element "v1:reserveURN"
+   (cxml:with-element "v1:setDefaultURL"
      (cxml:with-element "SSOToken" (cxml:text sso-token))
      (cxml:with-element "URN" (cxml:text urn))
      (cxml:with-element "URL" (cxml:text url)))))

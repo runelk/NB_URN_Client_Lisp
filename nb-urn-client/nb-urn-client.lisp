@@ -175,8 +175,8 @@
 (defmethod set-default-url ((client nb-urn-client) urn url)
   (let ((result (send-request (generate-set-default-url (sso-token client) urn url)
 			      :endpoint (endpoint client))))
-    (when result (soap-urn-info result)))
-  'no-sso-token)
+    (when result (soap-urn-info result))))
+
 
 ;;; Retrieve all series available for the current session. 
 ;;; The retrieved objecs contain all known information about the series.
